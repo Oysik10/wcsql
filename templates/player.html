@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+{% block title %}{{ player_name }} — World Cup Stats{% endblock %}
+
+{% set event_labels = {'G':'Goal','P':'Penalty','W':'Own Goal','Y':'Yellow Card','R':'Red Card','RSY':'Red Card (2Y)','MP':'Missed Penalty','I':'Sub In','IH':'Sub In (HT)','O':'Sub Out','OH':'Sub Out (HT)'} %}
+
+{% block content %}
+<h1>{{ player_name }}</h1>
+{% if appearances %}
+{% set goals = stats.get('G', 0) + stats.get('P', 0) %}
+<p class="muted">
+  {{ appearances|length }} matches &middot;
+  {{ goals }} goals
+  {% if stats.get('Y') %} &middot; {{ stats.get('Y') }} yellow cards{% endif %}
+  {% if stats.get('R', 0) + stats.get('RSY', 0) %} &middot; {{ stats.get('R', 0) + stats.get('RSY', 0) }} red cards{% endif %}
+</p>
+{% endif %}
+
+{% set match_events = {} %}
+{% for e in events %}
+  {% if e.match_id not in match_events %}{% set _ = match_events.update({e.match_id: []}) %}{% endif %}
+  {% set _ = match_events[e.match_id].append(e) %}
+{% endfor %}
+
+{% if appearances %}
+<h2>Appearances</h2>
+<table>
+  <thead>
+    <tr><th>Year</th><th>Stage</th><th>Match</th><th>Role</th><th>Events</th></tr>
+  </thead>
+  <tbody>
+    {% for app in appearances %}
+    <tr>
+      <td><a href="{{ url_for('worldcup', year=app.year) }}">{{ app.year }}</a></td>
+      <td class="muted">{{ app.stage }}</td>
+      <td>
+        <a href="{{ url_for('match', match_id=app.match_id) }}">
+          <a href="{{ url_for('team', team_name=app.home_team) }}">{{ app.home_team }}</a>
+          {{ app.home_goals }}–{{ app.away_goals }}
+          <a href="{{ url_for('team', team_name=app.away_team) }}">{{ app.away_team }}</a>
+        </a>
+      </td>
+      <td class="muted">{{ 'Starter' if app.lineup == 'S' else 'Sub' }}{% if app.position %} · {{ app.position }}{% endif %}</td>
+      <td class="muted">
+        {% set m_events = match_events.get(app.match_id, []) %}
+        {% for e in m_events %}{{ e.minute }}' {{ event_labels.get(e.event_type, e.event_type) }}{% if not loop.last %}, {% endif %}{% endfor %}
+      </td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% else %}
+<p class="empty">No appearance data found.</p>
+{% endif %}
+{% endblock %}

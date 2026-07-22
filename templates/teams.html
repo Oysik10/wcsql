@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+{% block title %}All Teams — World Cup Explorer{% endblock %}
+
+{% block content %}
+<h1>All Teams</h1>
+<p class="muted">{{ teams|length }} nations that have appeared in a FIFA World Cup</p>
+
+<ul>
+  {% for t in teams %}
+  <li><a href="{{ url_for('team', team_name=t.name) }}">{{ t.name }}</a></li>
+  {% endfor %}
+</ul>
+{% endblock %}

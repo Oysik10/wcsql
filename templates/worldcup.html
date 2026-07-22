@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+{% block title %}{{ tournament.year }} FIFA World Cup{% endblock %}
+
+{% block content %}
+<h1>{{ tournament.year }} FIFA World Cup — {{ tournament.country }}</h1>
+<p class="muted">
+  Winner: {{ tournament.winner }} &middot;
+  Runner-up: {{ tournament.runners_up }} &middot;
+  Third: {{ tournament.third }}
+  {% if tournament.fourth %} &middot; Fourth: {{ tournament.fourth }}{% endif %}
+</p>
+<p class="muted">
+  {{ tournament.teams }} teams &middot; {{ tournament.games }} matches &middot; {{ tournament.goals_scored }} goals
+</p>
+
+{% for stage, matches in stages %}
+<h2>{{ stage }}</h2>
+<table>
+  <thead>
+    <tr>
+      <th>Home</th>
+      <th>Score</th>
+      <th>Away</th>
+      <th>Date</th>
+      <th>City</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for m in matches %}
+    <tr>
+      <td><a href="{{ url_for('team', team_name=m.home_team) }}">{{ m.home_team }}</a></td>
+      <td>
+        <a href="{{ url_for('match', match_id=m.match_id) }}" class="score">{{ m.home_goals }} – {{ m.away_goals }}</a>
+        <span class="muted">(HT {{ m.halftime_home }}–{{ m.halftime_away }})</span>
+        {% if m.win_conditions %}<br><span class="muted">{{ m.win_conditions }}</span>{% endif %}
+      </td>
+      <td><a href="{{ url_for('team', team_name=m.away_team) }}">{{ m.away_team }}</a></td>
+      <td class="muted">{{ m.datetime[:10] if m.datetime else '' }}</td>
+      <td class="muted">{{ m.city }}</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% endfor %}
+
+{% if not stages %}
+<p class="empty">No matches found.</p>
+{% endif %}
+{% endblock %}

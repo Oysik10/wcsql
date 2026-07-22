@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% block title %}World Cup Explorer{% endblock %}
+
+{% block content %}
+<h1>FIFA World Cup History</h1>
+<p class="muted">{{ tournaments|length }} tournaments, 1930–2018</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>Year</th>
+      <th>Host</th>
+      <th>Winner</th>
+      <th>Teams</th>
+      <th>Matches</th>
+      <th>Goals</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for t in tournaments %}
+    <tr>
+      <td><a href="{{ url_for('worldcup', year=t.year) }}">{{ t.year }}</a></td>
+      <td>{{ t.country }}</td>
+      <td>{{ t.winner }}</td>
+      <td>{{ t.teams }}</td>
+      <td>{{ t.games }}</td>
+      <td>{{ t.goals_scored }}</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% endblock %}

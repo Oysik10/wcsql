@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+{% block title %}{{ team_name }} — World Cup History{% endblock %}
+
+{% block content %}
+<h1>{{ team_name }}</h1>
+
+{% set ns = namespace(gf=0, ga=0, w=0, d=0, l=0) %}
+{% for m in matches %}
+  {% if m.home_team == team_name %}
+    {% set ns.gf = ns.gf + m.home_goals %}{% set ns.ga = ns.ga + m.away_goals %}
+    {% if m.home_goals > m.away_goals %}{% set ns.w = ns.w + 1 %}
+    {% elif m.home_goals == m.away_goals %}{% set ns.d = ns.d + 1 %}
+    {% else %}{% set ns.l = ns.l + 1 %}{% endif %}
+  {% else %}
+    {% set ns.gf = ns.gf + m.away_goals %}{% set ns.ga = ns.ga + m.home_goals %}
+    {% if m.away_goals > m.home_goals %}{% set ns.w = ns.w + 1 %}
+    {% elif m.away_goals == m.home_goals %}{% set ns.d = ns.d + 1 %}
+    {% else %}{% set ns.l = ns.l + 1 %}{% endif %}
+  {% endif %}
+{% endfor %}
+
+<p class="muted">
+  {{ matches|length }} matches &middot;
+  {{ by_year|length }} World Cups &middot;
+  W {{ ns.w }} / D {{ ns.d }} / L {{ ns.l }} &middot;
+  GF {{ ns.gf }} GA {{ ns.ga }}
+</p>
+
+{% for year, year_matches in by_year.items() | sort %}
+<h2><a href="{{ url_for('worldcup', year=year) }}">{{ year }} World Cup</a></h2>
+<table>
+  <thead>
+    <tr><th>Stage</th><th>Opponent</th><th>Score</th><th>Result</th><th>Date</th></tr>
+  </thead>
+  <tbody>
+    {% for m in year_matches %}
+      {% if m.home_team == team_name %}
+        {% set gf = m.home_goals %}{% set ga = m.away_goals %}{% set opponent = m.away_team %}
+      {% else %}
+        {% set gf = m.away_goals %}{% set ga = m.home_goals %}{% set opponent = m.home_team %}
+      {% endif %}
+      {% if gf > ga %}{% set result = 'W' %}{% elif gf == ga %}{% set result = 'D' %}{% else %}{% set result = 'L' %}{% endif %}
+    <tr>
+      <td class="muted">{{ m.stage }}</td>
+      <td><a href="{{ url_for('team', team_name=opponent) }}">{{ opponent }}</a></td>
+      <td><a href="{{ url_for('match', match_id=m.match_id) }}" class="score">{{ gf }} – {{ ga }}</a></td>
+      <td>{{ result }}</td>
+      <td class="muted">{{ m.datetime[:10] if m.datetime else '' }}</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% endfor %}
+
+{% if not matches %}
+<p class="empty">No matches found.</p>
+{% endif %}
+{% endblock %}

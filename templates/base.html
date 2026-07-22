@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}World Cup Explorer{% endblock %}</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+
+<nav>
+  <a class="nav-logo" href="{{ url_for('home') }}">World Cup Explorer</a>
+  <a href="{{ url_for('home') }}">Tournaments</a>
+  <a href="{{ url_for('teams') }}">Teams</a>
+  <form class="search-form" action="{{ url_for('search') }}" method="get">
+    <input type="search" name="q" placeholder="Search players, teams…"
+           value="{{ request.args.get('q', '') }}">
+    <button type="submit">Search</button>
+  </form>
+</nav>
+
+{% block content %}{% endblock %}
+
+</body>
+</html>

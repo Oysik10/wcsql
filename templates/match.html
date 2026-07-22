@@ -1,0 +1,95 @@
+{% extends "base.html" %}
+{% block title %}{{ match.home_team }} vs {{ match.away_team }} — {{ match.year }}{% endblock %}
+
+{% macro event_label(code) %}
+  {% set labels = {'G':'Goal','P':'Penalty','W':'Own Goal','Y':'Yellow Card','R':'Red Card','RSY':'Red Card (2Y)','MP':'Missed Penalty','I':'Sub In','IH':'Sub In (HT)','O':'Sub Out','OH':'Sub Out (HT)'} %}
+  {{ labels.get(code, code) }}
+{% endmacro %}
+
+{% macro player_rows(players) %}
+  {% for p in players %}
+  <tr>
+    <td>{{ p.shirt_number if p.shirt_number else '—' }}</td>
+    <td>{{ p.position }}</td>
+    <td><a href="{{ url_for('player', player_name=p.player_name) }}">{{ p.player_name }}</a></td>
+    <td class="muted">
+      {% for ev in p.event_raw | parse_event_tokens %}{{ ev.minute }}' {{ event_label(ev.type) }}{% if not loop.last %}, {% endif %}{% endfor %}
+    </td>
+  </tr>
+  {% endfor %}
+{% endmacro %}
+
+{% block content %}
+<p class="muted"><a href="{{ url_for('worldcup', year=match.year) }}">← {{ match.year }} World Cup</a></p>
+
+<h1>
+  <a href="{{ url_for('team', team_name=match.home_team) }}">{{ match.home_team }}</a>
+  {{ match.home_goals }} – {{ match.away_goals }}
+  <a href="{{ url_for('team', team_name=match.away_team) }}">{{ match.away_team }}</a>
+</h1>
+<p class="muted">
+  {{ match.stage }} &middot;
+  HT {{ match.halftime_home }}–{{ match.halftime_away }}
+  {% if match.win_conditions %} &middot; {{ match.win_conditions }}{% endif %}
+</p>
+<p class="muted">
+  {% if match.datetime %}{{ match.datetime[:10] }}{% endif %}
+  {% if match.city %} &middot; {{ match.city }}{% endif %}
+  {% if match.stadium %}, {{ match.stadium }}{% endif %}
+  {% if match.attendance %} &middot; Attendance: {{ "{:,}".format(match.attendance) }}{% endif %}
+  {% if match.referee %} &middot; Referee: {{ match.referee }}{% endif %}
+</p>
+
+{% if home_starters or away_starters %}
+<h2>Lineups</h2>
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:2rem">
+  <div>
+    <h3>{{ match.home_team }}</h3>
+    <table>
+      <thead><tr><th>#</th><th>Pos</th><th>Player</th><th>Events</th></tr></thead>
+      <tbody>
+        {{ player_rows(home_starters) }}
+        {% if home_subs %}
+        <tr><td colspan="4" class="muted" style="padding-top:.75rem;font-style:italic">Substitutes</td></tr>
+        {{ player_rows(home_subs) }}
+        {% endif %}
+      </tbody>
+    </table>
+  </div>
+  <div>
+    <h3>{{ match.away_team }}</h3>
+    <table>
+      <thead><tr><th>#</th><th>Pos</th><th>Player</th><th>Events</th></tr></thead>
+      <tbody>
+        {{ player_rows(away_starters) }}
+        {% if away_subs %}
+        <tr><td colspan="4" class="muted" style="padding-top:.75rem;font-style:italic">Substitutes</td></tr>
+        {{ player_rows(away_subs) }}
+        {% endif %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endif %}
+
+{% if all_events %}
+<h2>Match Events</h2>
+<table>
+  <thead><tr><th>Min</th><th>Player</th><th>Team</th><th>Event</th></tr></thead>
+  <tbody>
+    {% for e in all_events %}
+    <tr>
+      <td>{{ e.minute }}'</td>
+      <td><a href="{{ url_for('player', player_name=e.player_name) }}">{{ e.player_name }}</a></td>
+      <td>{{ match.home_team if e.team_initials == match.home_team_initials else match.away_team }}</td>
+      <td>{{ event_label(e.event_type) }}</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% endif %}
+
+{% if not home_starters and not away_starters and not all_events %}
+<p class="empty">No detailed player data available for this match.</p>
+{% endif %}
+{% endblock %}
